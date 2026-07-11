@@ -1,0 +1,6 @@
+Order_ID,Product,Qty,Value,City,Timestamp
+101,Laptop,1.0,1200.506,hyderabad ,2026-07-01 10:00:00
+102,Mouse,,25.0,karachi,2026-07-01 11:30:00
+103, Keyboard,3.0,,Lahore,
+101,Laptop,1.0,1200.506,hyderabad ,2026-07-01 10:00:00
+104,Monitor,2.0,350.0, islamabad,2026-07-01 14:15:00
