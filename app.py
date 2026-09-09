@@ -15,6 +15,8 @@ from prediction_history import (
 
 from recommendations import get_recommendations
 
+from explainability import explain_customer_risk
+
 from revenue_risk import (
     calculate_revenue_risk,
     calculate_high_risk_revenue
@@ -116,6 +118,7 @@ page = st.sidebar.radio(
         "🏠 Executive Dashboard",
         "🔮 Churn Prediction",
         "📊 Customer Analytics",
+        "🤖 AI Explainability",
         "📜 Prediction History",
         "💡 Retention Recommendations",
         "💰 Revenue Risk",
@@ -132,11 +135,12 @@ st.sidebar.info(
 
     Use the navigation menu to explore:
 
-    • Customer analytics  
-    • AI churn prediction  
-    • Retention actions  
-    • Revenue risk  
-    • Prediction history  
+    • Customer analytics
+    • AI churn prediction
+    • AI explainability
+    • Retention actions
+    • Revenue risk
+    • Prediction history
     • Model performance
     """
 )
@@ -714,6 +718,58 @@ elif page == "🔮 Churn Prediction":
             )
 
             # -------------------------------------------------
+            # AI EXPLAINABILITY
+            # -------------------------------------------------
+
+            st.markdown("---")
+
+            st.subheader("🤖 AI Risk Explanation")
+
+            explanation = explain_customer_risk(
+                contract=contract,
+                monthly_charges=monthly_charges,
+                tenure=tenure,
+                tech_support=tech_support,
+                churn_probability=probability
+            )
+
+            st.info(
+                f"🎯 {explanation['risk_explanation']}"
+            )
+
+            # -------------------------------------------------
+            # RISK FACTORS
+            # -------------------------------------------------
+
+            st.subheader("⚠️ Main Risk Factors")
+
+            factors = explanation[
+                "risk_factors"
+            ]
+
+            for factor in factors:
+
+                st.warning(
+                    f"⚠️ {factor}"
+                )
+
+            # -------------------------------------------------
+            # RECOMMENDED ACTIONS
+            # -------------------------------------------------
+
+            st.subheader("💡 AI Recommended Actions")
+
+            actions = explanation[
+                "recommended_actions"
+            ]
+
+            for action in actions:
+
+                st.success(
+                    f"💡 {action}"
+                )
+
+            # -------------------------------------------------
             # SAVE HISTORY
             # -------------------------------------------------
 
@@ -728,27 +784,6 @@ elif page == "🔮 Churn Prediction":
                 "✅ Prediction completed and saved to prediction history."
             )
 
-            # -------------------------------------------------
-            # RETENTION RECOMMENDATIONS
-            # -------------------------------------------------
-
-            st.subheader(
-                "💡 Recommended Retention Actions"
-            )
-
-            recommendations = get_recommendations(
-                contract=contract,
-                monthly_charges=monthly_charges,
-                tenure=tenure,
-                tech_support=tech_support
-            )
-
-            for recommendation in recommendations:
-
-                st.info(
-                    f"💡 {recommendation}"
-                )
-
         except Exception as error:
 
             st.error(
@@ -756,8 +791,8 @@ elif page == "🔮 Churn Prediction":
             )
 
             st.warning(
-                "Please verify that the ANN model and scaler "
-                "match the features expected by prediction.py."
+                "Please verify that the ANN model, scaler and "
+                "features match the configuration expected by prediction.py."
             )
 
             st.code(
@@ -873,6 +908,190 @@ elif page == "📊 Customer Analytics":
 
 # =========================================================
 # PAGE 4
+# AI EXPLAINABILITY
+# =========================================================
+
+elif page == "🤖 AI Explainability":
+
+    st.header("🤖 AI Customer Risk Explainability")
+
+    st.write(
+        "Understand why a customer may be at risk of churn "
+        "and what business action can be taken."
+    )
+
+    st.markdown("---")
+
+    st.subheader("👤 Customer Information")
+
+    col1, col2 = st.columns(2)
+
+    with col1:
+
+        explain_contract = st.selectbox(
+            "Contract Type",
+            [
+                "Month-to-month",
+                "One year",
+                "Two year"
+            ],
+            key="explain_contract"
+        )
+
+        explain_tenure = st.number_input(
+            "Tenure (Months)",
+            min_value=0,
+            max_value=100,
+            value=12,
+            key="explain_tenure"
+        )
+
+    with col2:
+
+        explain_charges = st.number_input(
+            "Monthly Charges",
+            min_value=0.0,
+            value=70.0,
+            key="explain_charges"
+        )
+
+        explain_support = st.selectbox(
+            "Tech Support",
+            [
+                "Yes",
+                "No"
+            ],
+            key="explain_support"
+        )
+
+    explain_probability = st.slider(
+        "Churn Probability (%)",
+        min_value=0,
+        max_value=100,
+        value=70,
+        key="explain_probability"
+    )
+
+    st.markdown("---")
+
+    if st.button(
+        "🔍 Explain Customer Risk",
+        use_container_width=True
+    ):
+
+        explanation = explain_customer_risk(
+            contract=explain_contract,
+            monthly_charges=explain_charges,
+            tenure=explain_tenure,
+            tech_support=explain_support,
+            churn_probability=explain_probability
+        )
+
+        # -------------------------------------------------
+        # RISK SUMMARY
+        # -------------------------------------------------
+
+        st.subheader("🎯 Risk Summary")
+
+        e1, e2 = st.columns(2)
+
+        with e1:
+
+            st.metric(
+                "Churn Probability",
+                f"{explain_probability}%"
+            )
+
+        with e2:
+
+            if explain_probability >= 80:
+                display_risk = "Critical"
+
+            elif explain_probability >= 60:
+                display_risk = "High"
+
+            elif explain_probability >= 30:
+                display_risk = "Medium"
+
+            else:
+                display_risk = "Low"
+
+            st.metric(
+                "Risk Level",
+                display_risk
+            )
+
+        st.markdown("---")
+
+        # -------------------------------------------------
+        # BUSINESS EXPLANATION
+        # -------------------------------------------------
+
+        st.subheader("🧠 Business Explanation")
+
+        st.info(
+            explanation["risk_explanation"]
+        )
+
+        # -------------------------------------------------
+        # RISK FACTORS
+        # -------------------------------------------------
+
+        st.subheader("⚠️ Detected Risk Factors")
+
+        for factor in explanation["risk_factors"]:
+
+            st.warning(
+                f"⚠️ {factor}"
+            )
+
+        # -------------------------------------------------
+        # ACTION PLAN
+        # -------------------------------------------------
+
+        st.subheader("🎯 Recommended Retention Action Plan")
+
+        for action in explanation["recommended_actions"]:
+
+            st.success(
+                f"💡 {action}"
+            )
+
+        # -------------------------------------------------
+        # BUSINESS DECISION
+        # -------------------------------------------------
+
+        st.markdown("---")
+
+        st.subheader("📌 Business Decision")
+
+        if explain_probability >= 80:
+
+            st.error(
+                "🚨 Immediate retention intervention recommended."
+            )
+
+        elif explain_probability >= 60:
+
+            st.warning(
+                "⚠️ Proactive retention action should be considered."
+            )
+
+        elif explain_probability >= 30:
+
+            st.info(
+                "👀 Customer should be monitored for future churn signals."
+            )
+
+        else:
+
+            st.success(
+                "✅ Customer currently shows relatively low churn risk."
+            )
+
+
+# =========================================================
+# PAGE 5
 # PREDICTION HISTORY
 # =========================================================
 
@@ -895,10 +1114,6 @@ elif page == "📜 Prediction History":
         )
 
     else:
-
-        # -------------------------------------------------
-        # HISTORY KPIs
-        # -------------------------------------------------
 
         total_predictions = len(history)
 
@@ -948,10 +1163,6 @@ elif page == "📜 Prediction History":
             use_container_width=True
         )
 
-        # -------------------------------------------------
-        # DOWNLOAD
-        # -------------------------------------------------
-
         csv_data = history.to_csv(
             index=False
         )
@@ -966,7 +1177,7 @@ elif page == "📜 Prediction History":
 
 
 # =========================================================
-# PAGE 5
+# PAGE 6
 # RETENTION RECOMMENDATIONS
 # =========================================================
 
@@ -1046,7 +1257,7 @@ elif page == "💡 Retention Recommendations":
 
 
 # =========================================================
-# PAGE 6
+# PAGE 7
 # REVENUE RISK
 # =========================================================
 
@@ -1060,10 +1271,6 @@ elif page == "💰 Revenue Risk":
     )
 
     st.markdown("---")
-
-    # -----------------------------------------------------
-    # HISTORICAL CHURN REVENUE RISK
-    # -----------------------------------------------------
 
     revenue_result = calculate_revenue_risk(
         df
@@ -1143,10 +1350,6 @@ elif page == "💰 Revenue Risk":
             "Required columns were not found."
         )
 
-    # -----------------------------------------------------
-    # HIGH / CRITICAL RISK REVENUE
-    # -----------------------------------------------------
-
     st.markdown("---")
 
     st.subheader(
@@ -1201,7 +1404,7 @@ elif page == "💰 Revenue Risk":
 
 
 # =========================================================
-# PAGE 7
+# PAGE 8
 # MODEL PERFORMANCE
 # =========================================================
 
@@ -1224,10 +1427,6 @@ elif page == "📈 Model Performance":
         data and should not be presented as the real model performance.
         """
     )
-
-    # -----------------------------------------------------
-    # OPTIONAL TEST DATA
-    # -----------------------------------------------------
 
     st.subheader("🧪 Evaluation Status")
 
@@ -1299,7 +1498,7 @@ create_metrics_dataframe(
 
 
 # =========================================================
-# PAGE 8
+# PAGE 9
 # ABOUT PROJECT
 # =========================================================
 
@@ -1323,6 +1522,8 @@ elif page == "ℹ️ About Project":
 
         • Customer risk classification
 
+        • AI risk explainability
+
         • Customer analytics
 
         • Prediction history
@@ -1339,6 +1540,9 @@ elif page == "ℹ️ About Project":
 
         The system uses a trained Artificial Neural Network to estimate
         the probability that a customer may churn.
+
+        The explainability module provides business-friendly reasons
+        behind the customer's risk profile.
 
         ### 📊 Analytics
 
@@ -1401,7 +1605,8 @@ st.markdown(
 
     <b>AI Telco Customer Churn Prediction</b><br>
 
-    Customer Analytics • AI Prediction • Retention Intelligence • Revenue Risk
+    Customer Analytics • AI Prediction • AI Explainability •
+    Retention Intelligence • Revenue Risk
 
     </div>
     """,
