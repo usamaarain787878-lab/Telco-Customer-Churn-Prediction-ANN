@@ -1,0 +1,14 @@
+telco_customer_churn/
+│
+├── app.py
+│
+├── prediction.py
+│
+├── models/
+│   ├── churn_model.keras
+│   └── scaler.pkl
+│
+├── data/
+│   └── Cleaned_Dataset.csv
+│
+└── requirements.txt
