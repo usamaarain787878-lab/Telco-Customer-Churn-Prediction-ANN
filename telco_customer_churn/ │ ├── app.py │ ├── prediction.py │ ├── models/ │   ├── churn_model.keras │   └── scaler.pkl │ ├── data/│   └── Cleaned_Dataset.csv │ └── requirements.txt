@@ -1,14 +1,7 @@
-telco_customer_churn/
+Telco-Customer-Churn-Prediction-ANN/
 │
 ├── app.py
-│
-├── prediction.py
-│
-├── models/
-│   ├── churn_model.keras
-│   └── scaler.pkl
-│
-├── data/
-│   └── Cleaned_Dataset.csv
-│
-└── requirements.txt
+├── model_performance.py
+├── generate_dataset.py   ← yahan dummy-data code
+├── Cleaned_Dataset.csv
+├── ...
