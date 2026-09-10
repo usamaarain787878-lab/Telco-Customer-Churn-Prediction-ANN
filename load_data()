@@ -3,41 +3,45 @@
 # =========================================================
 
 import os
+import streamlit as st
+import pandas as pd
 
 @st.cache_data
 def load_data():
-    # Direct hardcoded absolute path set kar rahe hain taake koi confusion na rahay
     file_path = r"C:\Users\Administrator\Telco-Customer-Churn-Prediction-ANN\Cleaned_Dataset.csv"
     
-    if not os.path.exists(file_path):
-        st.error(f"File yahan nahi mil rahi: {file_path}")
-        return None
+    try:
+        # Check karein ke file read ho rahi hai ya nahi
+        data = pd.read_csv(file_path)
         
-    data = pd.read_csv(file_path)
-    
-    # Column mapping array ko expand kiya gaya hai taake missing columns detect ho sakein
-    column_mapping = {}
-    for col in data.columns:
-        clean_col = col.strip().lower().replace("_", "").replace(" ", "").replace("-", "")
-        
-        if clean_col in ["churn", "exited", "customerstatus"]:
-            column_mapping[col] = "Churn"
-        elif clean_col in ["monthlycharges", "monthlycharge", "charges", "monthlybilling"]:
-            column_mapping[col] = "MonthlyCharges"
-        elif clean_col in ["contract", "contracttype", "contractterm"]:
-            column_mapping[col] = "Contract"
-        elif clean_col in ["internetservice", "internet", "internetservices"]:
-            column_mapping[col] = "InternetService"
-        elif clean_col in ["paymentmethod", "payment", "paymenttype", "pmethod"]:
-            column_mapping[col] = "PaymentMethod"
-        elif clean_col in ["tenure", "tenuremonths", "months"]:
-            column_mapping[col] = "tenure"
-        elif clean_col in ["totalcharges", "totalcharge"]:
-            column_mapping[col] = "TotalCharges"
-        elif clean_col in ["techsupport"]:
-            column_mapping[col] = "TechSupport"
-        elif clean_col in ["seniorcitizen"]:
-            column_mapping[col] = "SeniorCitizen"
+        # Column mapping array ko expand kiya gaya hai taake missing columns detect ho sakein
+        column_mapping = {}
+        for col in data.columns:
+            clean_col = col.strip().lower().replace("_", "").replace(" ", "").replace("-", "")
             
-    data = data.rename(columns=column_mapping)
-    return data
+            if clean_col in ["churn", "exited", "customerstatus"]:
+                column_mapping[col] = "Churn"
+            elif clean_col in ["monthlycharges", "monthlycharge", "charges", "monthlybilling"]:
+                column_mapping[col] = "MonthlyCharges"
+            elif clean_col in ["contract", "contracttype", "contractterm"]:
+                column_mapping[col] = "Contract"
+            elif clean_col in ["internetservice", "internet", "internetservices"]:
+                column_mapping[col] = "InternetService"
+            elif clean_col in ["paymentmethod", "payment", "paymenttype", "pmethod"]:
+                column_mapping[col] = "PaymentMethod"
+            elif clean_col in ["tenure", "tenuremonths", "months"]:
+                column_mapping[col] = "tenure"
+            elif clean_col in ["totalcharges", "totalcharge"]:
+                column_mapping[col] = "TotalCharges"
+            elif clean_col in ["techsupport"]:
+                column_mapping[col] = "TechSupport"
+            elif clean_col in ["seniorcitizen"]:
+                column_mapping[col] = "SeniorCitizen"
+                
+        data = data.rename(columns=column_mapping)
+        return data
+        
+    except Exception as e:
+        # Ab yahan screen par asli Python error nazar aa jayega
+        st.error(f"❌ Asli Error Yeh Hai: {e}")
+        return None
