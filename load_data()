@@ -6,10 +6,13 @@ import os
 
 @st.cache_data
 def load_data():
-    # Absolute path set karna taake file hamesha mil jaye
-    current_dir = os.path.dirname(os.path.abspath(__file__))
-    file_path = os.path.join(current_dir, "Cleaned_Dataset.csv")
+    # Direct hardcoded absolute path set kar rahe hain taake koi confusion na rahay
+    file_path = r"C:\Users\Administrator\Telco-Customer-Churn-Prediction-ANN\Cleaned_Dataset.csv"
     
+    if not os.path.exists(file_path):
+        st.error(f"File yahan nahi mil rahi: {file_path}")
+        return None
+        
     data = pd.read_csv(file_path)
     
     # Column mapping array ko expand kiya gaya hai taake missing columns detect ho sakein
