@@ -1,7 +1,6 @@
 import streamlit as st
 import pandas as pd
 import plotly.express as px
-import plotly.figure_factory as ff
 
 # =========================================================
 # PROJECT MODULES
@@ -58,17 +57,6 @@ st.markdown(
         font-size: 18px;
         color: #666666;
         margin-bottom: 20px;
-    }
-    .section-title {
-        font-size: 25px;
-        font-weight: 650;
-    }
-    .risk-box {
-        padding: 20px;
-        border-radius: 12px;
-        border: 1px solid #dddddd;
-        margin-top: 10px;
-        margin-bottom: 10px;
     }
     .footer {
         text-align: center;
@@ -155,7 +143,7 @@ try:
     df = load_data()
 except Exception as error:
     st.error("❌ Dataset could not be loaded.")
-    st.write("Please make sure the following file exists:")
+    st.write("Please make sure the following file exists in your project directory:")
     st.code("Cleaned_Dataset.csv")
     st.stop()
 
@@ -326,9 +314,9 @@ elif page == "🔮 Churn Prediction":
         with col2:
             tenure = st.number_input("Tenure (Months)", min_value=0, max_value=100, value=12)
         with col3:
-            monthly_charges = st.number_input("Monthly Charges", min_value=0.0, value=70.0)
+            monthly_charges = st.number_input("Monthly Charges ($)", min_value=0.0, value=70.0)
 
-        total_charges = st.number_input("Total Charges", min_value=0.0, value=840.0)
+        total_charges = st.number_input("Total Charges ($)", min_value=0.0, value=840.0)
 
         col4, col5 = st.columns(2)
         with col4:
@@ -409,14 +397,14 @@ elif page == "🔮 Churn Prediction":
                         c_data = row.to_dict()
                         res = predict_churn(c_data)
                         results.append({
-                            "Customer_ID": row.get("customerID", f"BATCH_{idx}"),
+                            "Customer_ID": row.get("customerID", row.get("Customer_ID", f"BATCH_{idx}")),
                             "Churn_Probability": res["churn_probability"],
                             "Risk_Level": res["risk_level"],
                             "Prediction": res["prediction"]
                         })
                     except Exception:
                         results.append({
-                            "Customer_ID": row.get("customerID", f"BATCH_{idx}"),
+                            "Customer_ID": row.get("customerID", row.get("Customer_ID", f"BATCH_{idx}")),
                             "Churn_Probability": None,
                             "Risk_Level": "Error",
                             "Prediction": "Error"
@@ -519,7 +507,10 @@ elif page == "📜 Prediction History":
     st.write("Historical record of inference requests executed by the system.")
     st.markdown("---")
 
-    history = load_prediction_history()
+    try:
+        history = load_prediction_history()
+    except Exception:
+        history = pd.DataFrame()
 
     if history.empty:
         st.info("No recorded predictions found.")
