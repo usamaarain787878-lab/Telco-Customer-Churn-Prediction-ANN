@@ -1,47 +1,38 @@
-# =========================================================
-# LOAD & STANDARDIZE DATA (AUTOMATED COLUMN MAPPING)
-# =========================================================
-
 import os
-import streamlit as st
 import pandas as pd
 
-@st.cache_data
 def load_data():
+    # Direct absolute path taake file 100% mil jaye
     file_path = r"C:\Users\Administrator\Telco-Customer-Churn-Prediction-ANN\Cleaned_Dataset.csv"
     
-    try:
-        # Check karein ke file read ho rahi hai ya nahi
-        data = pd.read_csv(file_path)
+    if not os.path.exists(file_path):
+        raise FileNotFoundError(f"File yahan nahi mili: {file_path}")
         
-        # Column mapping array ko expand kiya gaya hai taake missing columns detect ho sakein
-        column_mapping = {}
-        for col in data.columns:
-            clean_col = col.strip().lower().replace("_", "").replace(" ", "").replace("-", "")
+    data = pd.read_csv(file_path)
+    
+    # Column mapping
+    column_mapping = {}
+    for col in data.columns:
+        clean_col = col.strip().lower().replace("_", "").replace(" ", "").replace("-", "")
+        
+        if clean_col in ["churn", "exited", "customerstatus"]:
+            column_mapping[col] = "Churn"
+        elif clean_col in ["monthlycharges", "monthlycharge", "charges", "monthlybilling"]:
+            column_mapping[col] = "MonthlyCharges"
+        elif clean_col in ["contract", "contracttype", "contractterm"]:
+            column_mapping[col] = "Contract"
+        elif clean_col in ["internetservice", "internet", "internetservices"]:
+            column_mapping[col] = "InternetService"
+        elif clean_col in ["paymentmethod", "payment", "paymenttype", "pmethod"]:
+            column_mapping[col] = "PaymentMethod"
+        elif clean_col in ["tenure", "tenuremonths", "months"]:
+            column_mapping[col] = "tenure"
+        elif clean_col in ["totalcharges", "totalcharge"]:
+            column_mapping[col] = "TotalCharges"
+        elif clean_col in ["techsupport"]:
+            column_mapping[col] = "TechSupport"
+        elif clean_col in ["seniorcitizen"]:
+            column_mapping[col] = "SeniorCitizen"
             
-            if clean_col in ["churn", "exited", "customerstatus"]:
-                column_mapping[col] = "Churn"
-            elif clean_col in ["monthlycharges", "monthlycharge", "charges", "monthlybilling"]:
-                column_mapping[col] = "MonthlyCharges"
-            elif clean_col in ["contract", "contracttype", "contractterm"]:
-                column_mapping[col] = "Contract"
-            elif clean_col in ["internetservice", "internet", "internetservices"]:
-                column_mapping[col] = "InternetService"
-            elif clean_col in ["paymentmethod", "payment", "paymenttype", "pmethod"]:
-                column_mapping[col] = "PaymentMethod"
-            elif clean_col in ["tenure", "tenuremonths", "months"]:
-                column_mapping[col] = "tenure"
-            elif clean_col in ["totalcharges", "totalcharge"]:
-                column_mapping[col] = "TotalCharges"
-            elif clean_col in ["techsupport"]:
-                column_mapping[col] = "TechSupport"
-            elif clean_col in ["seniorcitizen"]:
-                column_mapping[col] = "SeniorCitizen"
-                
-        data = data.rename(columns=column_mapping)
-        return data
-        
-    except Exception as e:
-        # Ab yahan screen par asli Python error nazar aa jayega
-        st.error(f"❌ Asli Error Yeh Hai: {e}")
-        return None
+    data = data.rename(columns=column_mapping)
+    return data
