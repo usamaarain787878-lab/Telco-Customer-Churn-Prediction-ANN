@@ -1,5 +1,56 @@
-Order_ID,Product,Qty,Value,City,Timestamp
-101,Laptop,1.0,1200.51,Hyderabad,2026-07-01 10:00:00
-102,Mouse,1.5,25.0,Karachi,2026-07-01 11:30:00
-103, Keyboard,3.0,775.25,Lahore,2026-07-01 10:00:00
-104,Monitor,2.0,350.0,Islamabad,2026-07-01 14:15:00
+# =========================================================
+# PAGE 7: REVENUE RISK (SAFE Direct Logic)
+# =========================================================
+
+elif page == "💰 Revenue Risk":
+
+    st.header("💰 Financial Exposure & Revenue Risk")
+    st.write("Khasara hone wale aur khatre mein mojood revenue ki maaloomaat.")
+    st.markdown("---")
+
+    # Safe Calculations
+    if churn_column and monthly_charge_column:
+        churn_mask = df[churn_column].astype(str).str.strip().str.lower().isin(["yes", "true", "1", "churn", "churned"])
+        churned_df = df[churn_mask]
+        
+        churned_cnt = len(churned_df)
+        monthly_loss = pd.to_numeric(churned_df[monthly_charge_column], errors="coerce").sum()
+        avg_charge = pd.to_numeric(churned_df[monthly_charge_column], errors="coerce").mean()
+        if pd.isna(avg_charge):
+            avg_charge = 0.0
+
+        r1, r2, r3 = st.columns(3)
+        r1.metric("🚪 Total Churned Accounts", f"{churned_cnt:,}")
+        r2.metric("💸 Monthly Lost Revenue", f"${monthly_loss:,.2f}")
+        r3.metric("💳 Avg Monthly Bill (Churned)", f"${avg_charge:,.2f}")
+
+        st.markdown("### 📊 Monthly Revenue Loss Visualization")
+        rev_df = pd.DataFrame({
+            "Category": ["Churned Lost Revenue"],
+            "Amount ($)": [monthly_loss]
+        })
+        fig_rev = px.bar(
+            rev_df, 
+            x="Category", 
+            y="Amount ($)", 
+            text_auto=".2f", 
+            title="Current Monthly Revenue Loss",
+            color_discrete_sequence=["#EF553B"]
+        )
+        st.plotly_chart(fig_rev, use_container_width=True)
+    else:
+        st.warning("⚠️ Revenue risk calculate karne ke liye 'Churn' ya 'MonthlyCharges' columns missing hain.")
+
+    st.markdown("---")
+    st.subheader("⚠️ Predictive Risk Exposure")
+
+    if "Risk_Level" in df.columns and monthly_charge_column:
+        high_risk_df = df[df["Risk_Level"].astype(str).str.lower().isin(["high risk", "critical risk", "high"])]
+        high_cnt = len(high_risk_df)
+        high_rev = pd.to_numeric(high_risk_df[monthly_charge_column], errors="coerce").sum()
+
+        rr1, rr2 = st.columns(2)
+        rr1.metric("⚠️ High/Critical Risk Accounts", f"{high_cnt:,}")
+        rr2.metric("💰 Forward Monthly Revenue at Risk", f"${high_rev:,.2f}")
+    else:
+        st.info("💡 Predict page par batch prediction run karein ya 'Risk_Level' column wali CSV upload karein forward predictive exposure dekhne ke liye.")
