@@ -1,0 +1,4 @@
+Customer_ID,Prediction_Date,Churn_Probability,Risk_Level,Prediction
+CUST001,2026-09-10 13:07:30,100.0,High / Critical,Churn Risk
+CUST001,2026-09-10 13:13:06,50.0,Medium Risk,Watchlist (Fallback: The feature names should match)
+CUST001,2026-09-11 02:19:44,50.0,Medium Risk,Watchlist (Fallback: The feature names should match)
