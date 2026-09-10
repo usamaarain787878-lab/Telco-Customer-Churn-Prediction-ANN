@@ -1,239 +1,82 @@
-# prediction.py
-
 import os
-import pickle
-import numpy as np
+import joblib
 import pandas as pd
-from tensorflow.keras.models import load_model
+import tensorflow as tf
 
-
-# =========================================================
-# MODEL PATHS
-# =========================================================
-
-MODEL_PATH = os.path.join(
-    "models",
-    "churn_model.keras"
-)
-
-SCALER_PATH = os.path.join(
-    "models",
-    "scaler.pkl"
-)
-
-
-# =========================================================
-# LOAD MODEL
-# =========================================================
-
-def load_churn_model():
-
-    if not os.path.exists(MODEL_PATH):
-        raise FileNotFoundError(
-            f"Model not found: {MODEL_PATH}"
-        )
-
-    model = load_model(MODEL_PATH)
-
-    return model
-
-
-# =========================================================
-# LOAD SCALER
-# =========================================================
-
-def load_scaler():
-
-    if not os.path.exists(SCALER_PATH):
-        raise FileNotFoundError(
-            f"Scaler not found: {SCALER_PATH}"
-        )
-
-    with open(SCALER_PATH, "rb") as file:
-        scaler = pickle.load(file)
-
-    return scaler
-
-
-# =========================================================
-# PREPARE CUSTOMER DATA
-# =========================================================
-
-def prepare_customer_data(customer_data):
-
-    if isinstance(customer_data, dict):
-
-        data = pd.DataFrame([customer_data])
-
-    else:
-
-        data = customer_data.copy()
-
-    # Remove spaces from column names
-    data.columns = data.columns.str.strip()
-
-    # Convert numeric columns
-    numeric_columns = [
-        "SeniorCitizen",
-        "tenure",
-        "MonthlyCharges",
-        "TotalCharges"
+def load_artifacts():
+    # Model check karein (har possible path aur extension par)
+    model_paths = [
+        "churn_model.keras",
+        "churn_model.h5",
+        "models/churn_model.keras",
+        "models/churn_model.h5"
     ]
+    
+    model = None
+    for path in model_paths:
+        if os.path.exists(path):
+            model = tf.keras.models.load_model(path)
+            break
 
-    for column in numeric_columns:
+    # Scaler check karein
+    scaler_paths = ["scaler.pkl", "models/scaler.pkl"]
+    scaler = None
+    for path in scaler_paths:
+        if os.path.exists(path):
+            scaler = joblib.load(path)
+            break
 
-        if column in data.columns:
+    # Feature names check karein
+    feature_paths = ["feature_names.pkl", "models/feature_names.pkl"]
+    feature_names = None
+    for path in feature_paths:
+        if os.path.exists(path):
+            feature_names = joblib.load(path)
+            break
 
-            data[column] = pd.to_numeric(
-                data[column],
-                errors="coerce"
-            )
-
-    return data
-
-
-# =========================================================
-# PREDICT CHURN
-# =========================================================
+    return model, scaler, feature_names
 
 def predict_churn(customer_data):
+    """
+    Accepts dictionary of input features and returns prediction details.
+    """
+    model, scaler, feature_names = load_artifacts()
 
-    data = prepare_customer_data(
-        customer_data
-    )
+    if model is None or scaler is None or feature_names is None:
+        raise FileNotFoundError("Model or preprocessing artifacts (.h5/.keras/.pkl) missing!")
 
-    model = load_churn_model()
-    scaler = load_scaler()
+    # Convert dictionary to DataFrame
+    input_df = pd.DataFrame([customer_data])
 
-    # -----------------------------------------------------
-    # Keep only numeric values for scaler
-    # -----------------------------------------------------
+    # One-Hot Encoding matching features
+    input_encoded = pd.get_dummies(input_df)
 
-    numeric_data = data.select_dtypes(
-        include=["number"]
-    )
+    # Align columns with model features
+    full_df = pd.DataFrame(columns=feature_names)
+    for col in feature_names:
+        full_df[col] = input_encoded[col] if col in input_encoded.columns else 0
 
-    if numeric_data.empty:
+    # Fill NaNs with 0
+    full_df = full_df.fillna(0)
 
-        raise ValueError(
-            "No numeric features found in customer data."
-        )
+    # Scale numeric columns
+    scaled_input = scaler.transform(full_df)
 
-    # Fill missing numeric values
-    numeric_data = numeric_data.fillna(0)
+    # Predict using model
+    prob = float(model.predict(scaled_input, verbose=0)[0][0]) * 100
 
-    # Scale data
-    scaled_data = scaler.transform(
-        numeric_data
-    )
-
-    # ANN prediction
-    probability = model.predict(
-        scaled_data,
-        verbose=0
-    )
-
-    # Convert prediction to single number
-    churn_probability = float(
-        np.asarray(probability).reshape(-1)[0]
-    )
-
-    # If model returns percentage
-    if churn_probability > 1:
-        churn_probability = (
-            churn_probability / 100
-        )
-
-    # Keep probability between 0 and 1
-    churn_probability = max(
-        0,
-        min(1, churn_probability)
-    )
-
-    # -----------------------------------------------------
-    # Risk level
-    # -----------------------------------------------------
-
-    if churn_probability < 0.30:
-
-        risk_level = "Low"
-
-    elif churn_probability < 0.60:
-
-        risk_level = "Medium"
-
-    elif churn_probability < 0.80:
-
-        risk_level = "High"
-
+    if prob >= 70:
+        risk_level = "High / Critical"
+        prediction = "Churn Risk"
+    elif prob >= 40:
+        risk_level = "Medium Risk"
+        prediction = "Watchlist"
     else:
-
-        risk_level = "Critical"
-
-    # -----------------------------------------------------
-    # Final prediction
-    # -----------------------------------------------------
-
-    if churn_probability >= 0.50:
-
-        prediction = "Likely to Churn"
-
-    else:
-
-        prediction = "Likely to Stay"
+        risk_level = "Low Risk"
+        prediction = "Retained"
 
     return {
-        "churn_probability": round(
-            churn_probability * 100,
-            2
-        ),
+        "churn_probability": round(prob, 2),
         "risk_level": risk_level,
         "prediction": prediction
     }
-
-
-# =========================================================
-# TEST
-# =========================================================
-
-if __name__ == "__main__":
-
-    print("================================")
-    print("TELCO CUSTOMER CHURN PREDICTION")
-    print("================================")
-
-    try:
-
-        customer = {
-            "SeniorCitizen": 0,
-            "tenure": 5,
-            "MonthlyCharges": 85.50,
-            "TotalCharges": 427.50
-        }
-
-        result = predict_churn(
-            customer
-        )
-
-        print(
-            "\nChurn Probability:",
-            result["churn_probability"],
-            "%"
-        )
-
-        print(
-            "Risk Level:",
-            result["risk_level"]
-        )
-
-        print(
-            "Prediction:",
-            result["prediction"]
-        )
-
-    except Exception as error:
-
-        print(
-            "\nPrediction Error:",
-            error
-        )
