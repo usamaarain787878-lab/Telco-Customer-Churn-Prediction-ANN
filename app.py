@@ -423,7 +423,7 @@ elif page == "🔮 Churn Prediction":
 
 
 # =========================================================
-# PAGE 3: CUSTOMER ANALYTICS
+# PAGE 3: CUSTOMER ANALYTICS (FIXED FOR GRAPHS)
 # =========================================================
 
 elif page == "📊 Customer Analytics":
@@ -432,25 +432,58 @@ elif page == "📊 Customer Analytics":
     st.write("Segments ke mutabiq customer churn dynamics ka tafseeli breakdown.")
     st.markdown("---")
 
-    if "Contract" in df.columns and churn_column:
+    cols_map = {col.lower().strip(): col for col in df.columns}
+
+    # 1. Contract Chart
+    contract_col = cols_map.get("contract")
+    if contract_col and churn_column:
         st.subheader("📄 Contract Breakdown")
-        fig = px.bar(pd.crosstab(df["Contract"], df[churn_column]), barmode="group")
-        st.plotly_chart(fig, use_container_width=True)
+        fig_contract = px.bar(
+            pd.crosstab(df[contract_col], df[churn_column]),
+            barmode="group",
+            title="Churn by Contract Type"
+        )
+        st.plotly_chart(fig_contract, use_container_width=True)
+    else:
+        st.warning("⚠️ Dataset mein 'Contract' column nahi mila.")
 
-    if "InternetService" in df.columns and churn_column:
+    # 2. Internet Service Chart
+    internet_col = cols_map.get("internetservice") or cols_map.get("internet_service")
+    if internet_col and churn_column:
         st.subheader("🌐 Internet Service Breakdown")
-        fig = px.bar(pd.crosstab(df["InternetService"], df[churn_column]), barmode="group")
-        st.plotly_chart(fig, use_container_width=True)
+        fig_internet = px.bar(
+            pd.crosstab(df[internet_col], df[churn_column]),
+            barmode="group",
+            title="Churn by Internet Service"
+        )
+        st.plotly_chart(fig_internet, use_container_width=True)
+    else:
+        st.warning("⚠️ Dataset mein 'InternetService' column nahi mila.")
 
-    if "PaymentMethod" in df.columns and churn_column:
+    # 3. Payment Method Chart
+    payment_col = cols_map.get("paymentmethod") or cols_map.get("payment_method")
+    if payment_col and churn_column:
         st.subheader("💳 Payment Method Breakdown")
-        fig = px.bar(pd.crosstab(df["PaymentMethod"], df[churn_column]), barmode="group")
-        st.plotly_chart(fig, use_container_width=True)
+        fig_payment = px.bar(
+            pd.crosstab(df[payment_col], df[churn_column]),
+            barmode="group",
+            title="Churn by Payment Method"
+        )
+        st.plotly_chart(fig_payment, use_container_width=True)
+    else:
+        st.warning("⚠️ Dataset mein 'PaymentMethod' column nahi mila.")
 
+    # 4. Monthly Charges Box Plot
     if monthly_charge_column and churn_column:
         st.subheader("💰 Monthly Charges Distribution")
-        fig = px.box(df, x=churn_column, y=monthly_charge_column)
-        st.plotly_chart(fig, use_container_width=True)
+        fig_box = px.box(
+            df, 
+            x=churn_column, 
+            y=monthly_charge_column, 
+            points="outliers",
+            title="Monthly Charges by Churn Status"
+        )
+        st.plotly_chart(fig_box, use_container_width=True)
 
 
 # =========================================================
@@ -558,7 +591,7 @@ elif page == "💡 Retention Recommendations":
 
 
 # =========================================================
-# PAGE 7: REVENUE RISK
+# PAGE 7: REVENUE RISK (FIXED FOR GRAPHS)
 # =========================================================
 
 elif page == "💰 Revenue Risk":
@@ -571,28 +604,40 @@ elif page == "💰 Revenue Risk":
 
     if revenue_result is not None:
         r1, r2, r3 = st.columns(3)
-        r1.metric("🚪 Total Churned Accounts", f"{revenue_result['churned_customers']:,}")
-        r2.metric("💸 Monthly Lost Revenue", f"${revenue_result['monthly_revenue_loss']:,.2f}")
-        r3.metric("💳 Average Monthly Bill (Churned)", f"${revenue_result['average_churned_charge']:,.2f}")
+        r1.metric("🚪 Total Churned Accounts", f"{revenue_result.get('churned_customers', 0):,}")
+        r2.metric("💸 Monthly Lost Revenue", f"${revenue_result.get('monthly_revenue_loss', 0.0):,.2f}")
+        r3.metric("💳 Avg Monthly Bill (Churned)", f"${revenue_result.get('average_churned_charge', 0.0):,.2f}")
 
+        st.markdown("### 📊 Monthly Revenue Loss Visualization")
         rev_df = pd.DataFrame({
-            "Metric": ["Monthly Lost Revenue"],
-            "Amount ($)": [revenue_result['monthly_revenue_loss']]
+            "Category": ["Churned Lost Revenue"],
+            "Amount ($)": [revenue_result.get('monthly_revenue_loss', 0.0)]
         })
-        fig_rev = px.bar(rev_df, x="Metric", y="Amount ($)", text_auto=".2f", title="Monthly Revenue Exposure")
+        fig_rev = px.bar(
+            rev_df, 
+            x="Category", 
+            y="Amount ($)", 
+            text_auto=".2f", 
+            title="Current Monthly Revenue Loss",
+            color_discrete_sequence=["#EF553B"]
+        )
         st.plotly_chart(fig_rev, use_container_width=True)
+    else:
+        st.warning("⚠️ Revenue risk calculate karne ke liye dataset mein churn/monthly charge column missing hain.")
 
     st.markdown("---")
     st.subheader("⚠️ Predictive Risk Exposure")
 
-    if "Risk_Level" in df.columns:
+    risk_col = next((c for c in df.columns if c.lower().strip() in ["risk_level", "risklevel"]), None)
+
+    if risk_col:
         high_risk_result = calculate_high_risk_revenue(df)
         if high_risk_result:
             rr1, rr2 = st.columns(2)
-            rr1.metric("⚠️ High/Critical Risk Accounts", f"{high_risk_result['high_risk_customers']:,}")
-            rr2.metric("💰 Forward Monthly Revenue at Risk", f"${high_risk_result['revenue_at_risk']:,.2f}")
+            rr1.metric("⚠️ High/Critical Risk Accounts", f"{high_risk_result.get('high_risk_customers', 0):,}")
+            rr2.metric("💰 Forward Monthly Revenue at Risk", f"${high_risk_result.get('revenue_at_risk', 0.0):,.2f}")
     else:
-        st.info("'Risk_Level' tag wali CSV file upload karein predictive revenue dekhne ke liye.")
+        st.info("💡 Predict page par single/batch prediction chalaein taake 'Risk Level' generate ho sake aur yahan forward predictive graph dikha sake.")
 
 
 # =========================================================
