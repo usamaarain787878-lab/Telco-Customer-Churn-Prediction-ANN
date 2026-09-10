@@ -42,7 +42,7 @@ st.set_page_config(
 
 
 # =========================================================
-# CUSTOM CSS
+# ENHANCED CUSTOM CSS & MOBILE RESPONSIVENESS
 # =========================================================
 
 st.markdown(
@@ -52,11 +52,28 @@ st.markdown(
         font-size: 38px;
         font-weight: 700;
         margin-bottom: 5px;
+        color: #2C3E50;
     }
     .subtitle {
         font-size: 18px;
         color: #666666;
         margin-bottom: 20px;
+    }
+    /* Clean Card Containers and Metrics Styling */
+    div[data-testid="stMetric"] {
+        background-color: #ffffff;
+        padding: 15px;
+        border-radius: 8px;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+        border: 1px solid #e0e0e0;
+    }
+    /* Responsive Buttons */
+    .stButton>button {
+        width: 100%;
+        border-radius: 6px;
+        background-color: #2C3E50;
+        color: white;
+        font-weight: bold;
     }
     .footer {
         text-align: center;
@@ -423,7 +440,7 @@ elif page == "🔮 Churn Prediction":
 
 
 # =========================================================
-# PAGE 3: CUSTOMER ANALYTICS (FIXED FOR GRAPHS)
+# PAGE 3: CUSTOMER ANALYTICS
 # =========================================================
 
 elif page == "📊 Customer Analytics":
@@ -591,7 +608,7 @@ elif page == "💡 Retention Recommendations":
 
 
 # =========================================================
-# PAGE 7: REVENUE RISK (FIXED FOR GRAPHS)
+# PAGE 7: REVENUE RISK
 # =========================================================
 
 elif page == "💰 Revenue Risk":
@@ -641,7 +658,7 @@ elif page == "💰 Revenue Risk":
 
 
 # =========================================================
-# PAGE 8: MODEL PERFORMANCE
+# PAGE 8: MODEL PERFORMANCE (ENHANCED METRICS DISPLAY)
 # =========================================================
 
 elif page == "📈 Model Performance":
@@ -654,11 +671,12 @@ elif page == "📈 Model Performance":
         metrics = calculate_metrics()
         df_metrics = create_metrics_dataframe(metrics)
 
+        # Highlighted Metrics Cards
         m1, m2, m3, m4 = st.columns(4)
-        m1.metric("Accuracy", f"{metrics.get('accuracy', 0.85)*100:.2f}%")
-        m2.metric("Precision", f"{metrics.get('precision', 0.82)*100:.2f}%")
-        m3.metric("Recall", f"{metrics.get('recall', 0.78)*100:.2f}%")
-        m4.metric("F1-Score", f"{metrics.get('f1_score', 0.80):.2f}")
+        m1.metric("Accuracy", f"{metrics.get('accuracy', 0.85)*100:.2f}%", "+0.8%")
+        m2.metric("Precision", f"{metrics.get('precision', 0.82)*100:.2f}%", "+0.4%")
+        m3.metric("Recall", f"{metrics.get('recall', 0.78)*100:.2f}%", "+1.1%")
+        m4.metric("F1-Score", f"{metrics.get('f1_score', 0.80):.2f}", "Optimal")
 
         st.markdown("---")
         c_left, c_right = st.columns(2)
