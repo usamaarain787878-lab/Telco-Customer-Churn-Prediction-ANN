@@ -130,7 +130,7 @@ st.sidebar.info(
 
 
 # =========================================================
-# LOAD DATA
+# LOAD DATA (WITH CACHING & ERROR HANDLING)
 # =========================================================
 
 @st.cache_data
@@ -142,8 +142,8 @@ def load_data():
 try:
     df = load_data()
 except Exception as error:
-    st.error("❌ Dataset could not be loaded.")
-    st.write("Please make sure the following file exists in your project directory:")
+    st.error("❌ Dataset load nahi ho saka.")
+    st.write("Barah-e-karam check karein ke yeh file project directory mein mojood hai:")
     st.code("Cleaned_Dataset.csv")
     st.stop()
 
@@ -178,9 +178,8 @@ if page == "🏠 Executive Dashboard":
     st.info(
         """
         ### Business Objective
-        Telecommunication companies can lose significant revenue when customers leave their services.
-        This platform uses Artificial Intelligence, customer analytics, and predictive modeling 
-        to identify customers at risk of churn and support proactive retention strategies.
+        Telecommunication companies ko customer churn ki wajah se kafi revenue loss hota hai.
+        Yeh platform AI aur predictive analytics ka istemal karke high-risk customers ko identify karta hai.
         """
     )
 
@@ -190,22 +189,22 @@ if page == "🏠 Executive Dashboard":
     with step1:
         st.markdown("### 1️⃣")
         st.markdown("**Customer Data**")
-        st.write("Demographics, services, contract, and billing information provided to the system.")
+        st.write("Demographics, services, contract, aur billing status.")
 
     with step2:
         st.markdown("### 2️⃣")
         st.markdown("**Data Processing**")
-        st.write("Data is cleaned, encoded, and scaled for machine learning processing.")
+        st.write("Cleaning, encoding, aur feature scaling pipeline.")
 
     with step3:
         st.markdown("### 3️⃣")
         st.markdown("**ANN Prediction**")
-        st.write("The Artificial Neural Network calculates churn probabilities and risk categories.")
+        st.write("Neural Network churn probabilities calculate karta hai.")
 
     with step4:
         st.markdown("### 4️⃣")
         st.markdown("**Business Action**")
-        st.write("High-risk customers receive tailored recommendations and interventions.")
+        st.write("High-risk accounts ke liye retention strategies.")
 
     st.markdown("---")
 
@@ -301,7 +300,7 @@ if page == "🏠 Executive Dashboard":
 elif page == "🔮 Churn Prediction":
 
     st.header("🔮 AI Customer Churn Prediction")
-    st.write("Run real-time predictions for individual customers or upload a batch CSV dataset.")
+    st.write("Real-time single customer prediction run karein ya batch CSV upload karein.")
 
     tab_single, tab_batch = st.tabs(["👤 Single Customer Prediction", "📁 Batch Prediction (CSV)"])
 
@@ -328,7 +327,7 @@ elif page == "🔮 Churn Prediction":
 
         if st.button("🤖 Predict Customer Churn", use_container_width=True):
             if not customer_id.strip():
-                st.warning("Please enter a valid Customer ID.")
+                st.warning("Barah-e-karam valid Customer ID enter karein.")
                 st.stop()
 
             try:
@@ -376,19 +375,19 @@ elif page == "🔮 Churn Prediction":
                     risk_level=risk_level,
                     prediction=prediction
                 )
-                st.success("✅ Prediction recorded in history.")
+                st.success("✅ Prediction History mein save ho chuki hai.")
 
             except Exception as error:
-                st.error("❌ Prediction execution failed.")
+                st.error("❌ Prediction execution fail ho gayi.")
                 st.code(str(error))
 
     with tab_batch:
         st.subheader("📤 Batch Processing")
-        uploaded_file = st.file_uploader("Upload CSV file containing customer data", type=["csv"])
+        uploaded_file = st.file_uploader("Customer data ki CSV file upload karein", type=["csv"])
 
         if uploaded_file is not None:
             batch_df = pd.read_csv(uploaded_file)
-            st.write("Preview of Uploaded Data:", batch_df.head())
+            st.write("Uploaded Data Preview:", batch_df.head())
 
             if st.button("🚀 Process Batch Predictions", use_container_width=True):
                 results = []
@@ -430,7 +429,7 @@ elif page == "🔮 Churn Prediction":
 elif page == "📊 Customer Analytics":
 
     st.header("📊 Customer Analytics")
-    st.write("Detailed breakdown of churn dynamics across operational segments.")
+    st.write("Segments ke mutabiq customer churn dynamics ka tafseeli breakdown.")
     st.markdown("---")
 
     if "Contract" in df.columns and churn_column:
@@ -461,7 +460,7 @@ elif page == "📊 Customer Analytics":
 elif page == "🤖 AI Explainability":
 
     st.header("🤖 AI Risk Explainability")
-    st.write("Understand model predictions through structured feature evaluations.")
+    st.write("Model predictions ko feature analysis ke zariye samjhein.")
     st.markdown("---")
 
     col1, col2 = st.columns(2)
@@ -504,7 +503,7 @@ elif page == "🤖 AI Explainability":
 elif page == "📜 Prediction History":
 
     st.header("📜 Prediction Log")
-    st.write("Historical record of inference requests executed by the system.")
+    st.write("System mein run hue sabhi past predictions ka record.")
     st.markdown("---")
 
     try:
@@ -513,7 +512,7 @@ elif page == "📜 Prediction History":
         history = pd.DataFrame()
 
     if history.empty:
-        st.info("No recorded predictions found.")
+        st.info("Koi recorded prediction history nahi mili.")
     else:
         st.metric("Total Executed Inference Calls", len(history))
         st.dataframe(history, use_container_width=True)
@@ -535,7 +534,7 @@ elif page == "📜 Prediction History":
 elif page == "💡 Retention Recommendations":
 
     st.header("💡 Strategic Retention Recommendations")
-    st.write("Tailored business interventions generated from operational profiles.")
+    st.write("Customer details ke hisab se customized retention actions.")
     st.markdown("---")
 
     col1, col2 = st.columns(2)
@@ -565,7 +564,7 @@ elif page == "💡 Retention Recommendations":
 elif page == "💰 Revenue Risk":
 
     st.header("💰 Financial Exposure & Revenue Risk")
-    st.write("Quantify actual historical revenue loss and identify forward-looking revenue exposure.")
+    st.write("Khasara hone wale aur khatre mein mojood revenue ki maaloomaat.")
     st.markdown("---")
 
     revenue_result = calculate_revenue_risk(df)
@@ -593,7 +592,7 @@ elif page == "💰 Revenue Risk":
             rr1.metric("⚠️ High/Critical Risk Accounts", f"{high_risk_result['high_risk_customers']:,}")
             rr2.metric("💰 Forward Monthly Revenue at Risk", f"${high_risk_result['revenue_at_risk']:,.2f}")
     else:
-        st.info("Upload or link predictions containing 'Risk_Level' tags to unlock predictive revenue calculations.")
+        st.info("'Risk_Level' tag wali CSV file upload karein predictive revenue dekhne ke liye.")
 
 
 # =========================================================
@@ -603,7 +602,7 @@ elif page == "💰 Revenue Risk":
 elif page == "📈 Model Performance":
 
     st.header("📈 Model Performance & Validation")
-    st.write("Quantitative metrics evaluated on test-split datasets.")
+    st.write("Test dataset par evaluate kiye gaye machine learning metrics.")
     st.markdown("---")
 
     try:
@@ -637,10 +636,10 @@ elif page == "📈 Model Performance":
                 )
                 st.plotly_chart(fig_cm, use_container_width=True)
             else:
-                st.info("Confusion matrix visualizer unavailable.")
+                st.info("Confusion matrix visualization mojood nahi hai.")
 
     except Exception as err:
-        st.error("Error evaluating performance module.")
+        st.error("Model performance evaluate karne mein error aya hai.")
         st.code(str(err))
 
 
@@ -657,23 +656,20 @@ elif page == "ℹ️ About Project":
         """
         ### 📡 AI Telco Customer Churn Platform
         
-        This application utilizes deep learning classification algorithms and feature attribution models 
-        to quantify, explain, and mitigate customer churn risks in real time.
+        Yeh application deep learning classification models aur feature attribution ka istemal karti hai 
+        taake customer churn risks ko monitor aur kam kiya ja sake.
 
         **Core Architecture Capabilities:**
-        * **Predictive Pipeline:** Artificial Neural Network (ANN) classifier trained on customer billing, contract, and demographic telemetry.
-        * **Explainable AI (XAI):** Rules-based feature breakdown mapping risk parameters directly to customer interventions.
-        * **Financial Exposure Engine:** Tracks actual revenue loss alongside projected forward risk across account groups.
-        * **Batch Execution:** Supports batch processing for continuous data streams.
+        * **Predictive Pipeline:** ANN classifier jo billing aur contract details par trained hai.
+        * **Explainable AI (XAI):** Risk reasoning aur actionable steps.
+        * **Financial Exposure Engine:** Monthly financial risk tracking.
+        * **Batch Execution:** Real-time stream processing support.
 
         **Tech Stack:**
-        * **UI/Frontend:** Streamlit
-        * **Data Processing & Analytics:** Pandas, NumPy
-        * **Data Visualization:** Plotly Express
-        * **Machine Learning Frameworks:** PyTorch / TensorFlow / Scikit-Learn
-
-        ---
-        Developed for Telecommunications Business Retention Teams.
+        * **UI:** Streamlit
+        * **Data Processing:** Pandas, NumPy
+        * **Visualization:** Plotly Express
+        * **Frameworks:** PyTorch / TensorFlow / Scikit-Learn
         """
     )
 
